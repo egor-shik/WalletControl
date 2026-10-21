@@ -1,18 +1,18 @@
 package usecase
 
 import (
-    "context"
-    "fmt"
+	"context"
 	"errors"
+	"fmt"
 )
 
 type BudgetRepository interface {
-    AddTransaction(ctx context.Context, amount float64, categoryID int) error
-    GetCategoryAnalytics(ctx context.Context) (map[string]float64, error)
+	AddTransaction(ctx context.Context, amount float64, categoryID int) error
+	GetCategoryAnalytics(ctx context.Context) (map[string]float64, error)
 }
 
 type BudgetUsecase struct {
-    repo BudgetRepository
+	repo BudgetRepository
 }
 
 func NewUsecase(repo BudgetRepository) *BudgetUsecase {
@@ -20,7 +20,9 @@ func NewUsecase(repo BudgetRepository) *BudgetUsecase {
 }
 
 func (b *BudgetUsecase) AddExpense(ctx context.Context, amount float64, categoryID int) error {
-	if amount <= 0 { return errors.New("amount must be greater than zero") }
+	if amount <= 0 {
+		return errors.New("amount must be greater than zero")
+	}
 	err := b.repo.AddTransaction(ctx, amount, categoryID)
 	if err != nil {
 		return fmt.Errorf("add transaction: %w", err)
