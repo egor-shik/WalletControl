@@ -13,7 +13,6 @@ import (
 
     "WalletControl/internal/config"
     deliveryhttp "WalletControl/internal/delivery/http"
-    "WalletControl/internal/delivery/http/middleware"
     "WalletControl/internal/repository"
     "WalletControl/internal/usecase"
     "WalletControl/internal/worker"
@@ -38,20 +37,15 @@ func main() {
     defer pool.Close()
 
     repo := repository.NewBudgetRepository(pool)
-    uc := usecase.NewUsecase(repo)
+    uc := usecase.NewUsecase(repo, repo) 
 
     go worker.StartAnalyticsWorker(ctx, uc, 30*time.Second)
 
-    mux := http.NewServeMux()
-    handler := deliveryhttp.NewExpenseHandler(uc)
-    mux.HandleFunc("POST /expense", handler.AddExpense)
-    mux.HandleFunc("GET /analytics", handler.GetAnalytics)
-
-    wrappedMux := middleware.Recovery(middleware.Logger(mux))
+    handler := deliveryhttp.NewRouter(uc)
 
     server := &http.Server{
         Addr:    ":" + cfg.Port,
-        Handler: wrappedMux,
+        Handler: handler,
     }
 
     log.Printf("Server started on port %s", cfg.Port)
